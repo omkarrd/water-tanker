@@ -1,0 +1,43 @@
+# Build stage
+FROM gradle:8.5-jdk21-alpine AS builder
+
+WORKDIR /app
+
+# Copy gradle files first for caching
+COPY water-tanker-java/build.gradle.kts water-tanker-java/settings.gradle.kts ./
+COPY water-tanker-java/shared/build.gradle.kts ./shared/
+COPY water-tanker-java/api/build.gradle.kts ./api/
+
+# Download dependencies
+RUN gradle :api:dependencies --no-daemon
+
+# Copy source code
+COPY water-tanker-java/shared/src ./shared/src
+COPY water-tanker-java/api/src ./api/src
+
+# Build the application
+RUN gradle :api:bootJar --no-daemon
+
+# Runtime stage
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
+
+# Create non-root user
+RUN addgroup -g 1000 -S appgroup && \
+    adduser -u 1000 -S appuser -G appgroup
+
+# Copy built jar
+COPY --from=builder /app/api/build/libs/*.jar app.jar
+
+# Change ownership
+RUN chown appuser:appgroup app.jar
+
+USER appuser
+
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-jar", "app.jar"]

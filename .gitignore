@@ -1,0 +1,32 @@
+# Build outputs
+build/
+.gradle/
+out/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Downloaded gradle distribution
+gradle-*.zip
+
+# Environment files
+.env
+.env.local
+*.local
+
+# Logs
+*.log
+
+# Test reports
+test-results/
+
+# Docker
+docker-compose.override.yml
